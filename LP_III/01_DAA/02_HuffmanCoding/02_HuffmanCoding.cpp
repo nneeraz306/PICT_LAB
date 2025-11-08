@@ -1,81 +1,88 @@
-/**
- * Problem Statement: Write a program to implement Huffman Encoding using a greedy strategy.
- * Must Watch: https://youtu.be/uDS8AkTAcIU?si=J79pJbEHLW588mcA
- */
-  
-
 #include<bits/stdc++.h>
 using namespace std;
 
-struct MinHeapNode{
-    char data;  // character
-    int freq;  // freuency of the character
-    MinHeapNode *left, *right; 
+// A Huffman tree node
+struct Node {
+    char ch;
+    int freq;
+    Node *left, *right;
 
-
-    MinHeapNode(char data, int freq){
+    Node(char c, int f) {
+        ch = c;
+        freq = f;
         left = right = nullptr;
-        this->data = data;
-        this->freq = freq;
     }
 };
 
-struct compare {
-    bool operator()(struct MinHeapNode* left, MinHeapNode* right){
-        return (left->freq > right->freq);
+// Compare function for priority queue (min-heap)
+struct Compare {
+    bool operator()(Node* a, Node* b) {
+        return a->freq > b->freq;
     }
 };
 
-// Function to print HuffMan Tree() (hint: preorder)
-void printCodes(struct MinHeapNode* root, string code){
-    if(!root)
+// Function to generate Huffman codes recursively
+void buildCodes(Node* root, string code, unordered_map<char, string>& huffmanCode) {
+    if (!root)
         return;
 
-    // if node is a leaf node then only print the character
-    if(!root->left && !root->right)
-        cout<< root->data<<" : "<<code<<"\n"<<endl;
-    
-    // traverse left and right subtrees with added code "0" and "1" imp. step to get correct code
-    printCodes(root->left, code+"0");
-    printCodes(root->right, code+"1");
+    // If leaf node (contains a character)
+    if (!root->left && !root->right)
+        huffmanCode[root->ch] = code;
+
+    buildCodes(root->left, code + "0", huffmanCode);
+    buildCodes(root->right, code + "1", huffmanCode);
 }
 
-// Build Huffman Tree
-void HuffmanCodes(vector<char> &data, vector<int>& freq){
-    int n = data.size();
+// Main Huffman Encoding function
+string huffmanEncode(string text) {
+    unordered_map<char, int> freq;
+    for (char ch : text)
+        freq[ch]++;
 
-    // create a min heap(priority queue)
-    priority_queue<MinHeapNode*, vector<MinHeapNode*>, compare> minHeap;
+    // Min-heap priority queue
+    priority_queue<Node*, vector<Node*>, Compare> pq;
 
-    for(int i =0;i<n;i++){
-        minHeap.push(new MinHeapNode(data[i], freq[i]));
+    for (auto pair : freq)
+        pq.push(new Node(pair.first, pair.second));
+
+    // Greedy approach: combine two smallest freq nodes until one tree remains
+    while (pq.size() > 1) {
+        Node* left = pq.top(); pq.pop();
+        Node* right = pq.top(); pq.pop();
+
+        Node* sum = new Node('\0', left->freq + right->freq);
+        sum->left = left;
+        sum->right = right;
+        pq.push(sum);
     }
 
-    // Iterate until the heap contains only one node (root of the Huffman Tree)
-    while(minHeap.size() != 1){
-        MinHeapNode *left = minHeap.top(); minHeap.pop();
-        MinHeapNode *right = minHeap.top(); minHeap.pop();
+    Node* root = pq.top();
 
-        MinHeapNode *top = new MinHeapNode('$', left->freq+right->freq);
+    // Generate Huffman codes
+    unordered_map<char, string> huffmanCode;
+    buildCodes(root, "", huffmanCode);
 
-        top->left = left;
-        top->right = right;
+    // Encode input string
+    string encoded = "";
+    for (char ch : text)
+        encoded += huffmanCode[ch];
 
-        minHeap.push(top);
-    }
-
-    // Print Huffman Codes using the tree built above
-    printCodes(minHeap.top(), "");
-}
-
-
-int main(){
-
-    vector<char> data = {'a', 'b', 'c', 'd', 'e', 'f'};
-    vector<int> freq = {5, 9, 12, 13, 16, 45};
-
+    // Optional: print codes for clarity
     cout << "Huffman Codes:\n";
-    HuffmanCodes(data, freq);
+    for (auto pair : huffmanCode)
+        cout << pair.first << " : " << pair.second << endl;
 
+    return encoded;
+}
+
+// Driver code
+int main() {
+    string text;
+    cout << "Enter a string: ";
+    getline(cin, text);
+
+    string encoded = huffmanEncode(text);
+    cout << "\nEncoded string: " << encoded << endl;
     return 0;
 }
