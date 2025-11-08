@@ -1,63 +1,78 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-// Function to partition the array around a pivot (Deterministic Quick Sort)
-int partitionDeterministic(vector<int>& arr, int low, int high) {
-    int pivot = arr[high];  // Deterministic pivot (last element)
-    int i = low - 1;
+// ------------------- Deterministic Partition -------------------
+int partition_deterministic(vector<int>& arr, int low, int high) {
+    int pivot = arr[low];  // pivot = first element
+    int i = low;
+    int j = high;
 
-    for (int j = low; j < high; j++) {
-        if (arr[j] < pivot) {
-            i++;
-            swap(arr[i], arr[j]);
-        }
+    while (i < j) {
+        while (arr[i] <= pivot && i < high) i++;
+        while (arr[j] > pivot && j >= 0) j--;
+        if (i < j) swap(arr[i], arr[j]);
     }
-    swap(arr[i + 1], arr[high]);
-    return i + 1;
+    swap(arr[low], arr[j]);
+    return j;
 }
 
-// Function to partition the array around a pivot (Randomized Quick Sort)
-int partitionRandomized(vector<int>& arr, int low, int high) {
-    int randomPivotIndex = low + rand() % (high - low + 1);  // Random pivot
-    swap(arr[randomPivotIndex], arr[high]);  // Move random pivot to end
-    return partitionDeterministic(arr, low, high);  // Reuse deterministic partition
+// ------------------- Randomized Partition -------------------
+int partition_randomized(vector<int>& arr, int low, int high) {
+    int random_index = low + rand() % (high - low + 1); // pick random pivot
+    swap(arr[low], arr[random_index]); // move random pivot to first
+    // now same as deterministic
+    int pivot = arr[low];
+    int i = low;
+    int j = high;
+
+    while (i < j) {
+        while (arr[i] <= pivot && i < high) i++;
+        while (arr[j] > pivot && j >= 0) j--;
+        if (i < j) swap(arr[i], arr[j]);
+    }
+    swap(arr[low], arr[j]);
+    return j;
 }
 
-// Deterministic Quick Sort
-void quickSortDeterministic(vector<int>& arr, int low, int high) {
+// ------------------- Deterministic Quick Sort -------------------
+void quicksort_deterministic(vector<int>& arr, int low, int high) {
     if (low < high) {
-        int pi = partitionDeterministic(arr, low, high);
-        quickSortDeterministic(arr, low, pi - 1);
-        quickSortDeterministic(arr, pi + 1, high);
+        int p = partition_deterministic(arr, low, high);
+        quicksort_deterministic(arr, low, p - 1);
+        quicksort_deterministic(arr, p + 1, high);
     }
 }
 
-// Randomized Quick Sort
-void quickSortRandomized(vector<int>& arr, int low, int high) {
+// ------------------- Randomized Quick Sort -------------------
+void quicksort_randomized(vector<int>& arr, int low, int high) {
     if (low < high) {
-        int pi = partitionRandomized(arr, low, high);
-        quickSortRandomized(arr, low, pi - 1);
-        quickSortRandomized(arr, pi + 1, high);
+        int p = partition_randomized(arr, low, high);
+        quicksort_randomized(arr, low, p - 1);
+        quicksort_randomized(arr, p + 1, high);
     }
 }
 
+// ------------------- MAIN -------------------
 int main() {
-    vector<int> arr = {10, 7, 8, 9, 1, 5};
+    srand(time(0)); // seed for randomness
 
-    // Testing Deterministic Quick Sort
-    vector<int> arrDeterministic = arr;
-    quickSortDeterministic(arrDeterministic, 0, arrDeterministic.size() - 1);
-    cout << "Deterministic Quick Sort Result: ";
-    for (int x : arrDeterministic) cout << x << " ";
-    cout << endl;
+    vector<int> arr1 = {10, 7, 8, 9, 1, 5};
+    vector<int> arr2 = arr1; // copy for randomized
 
-    // Testing Randomized Quick Sort
-    vector<int> arrRandomized = arr;
-    srand(time(0));  // Seed for randomness
-    quickSortRandomized(arrRandomized, 0, arrRandomized.size() - 1);
-    cout << "Randomized Quick Sort Result: ";
-    for (int x : arrRandomized) cout << x << " ";
-    cout << endl;
+    cout << "Original array: ";
+    for (int x : arr1) cout << x << " ";
+    cout << "\n\n";
+
+    quicksort_deterministic(arr1, 0, arr1.size() - 1);
+    quicksort_randomized(arr2, 0, arr2.size() - 1);
+
+    cout << "Sorted array (Deterministic): ";
+    for (int x : arr1) cout << x << " ";
+    cout << "\n";
+
+    cout << "Sorted array (Randomized):   ";
+    for (int x : arr2) cout << x << " ";
+    cout << "\n";
 
     return 0;
 }
